@@ -91,7 +91,7 @@ let s:Right = s:Go."\<RIGHT>"
 let g:AutoPairsClosedPairs = {}
 
 
-function! AutoPairsInsert(key)
+function! autopairs#AutoPairsInsert(key)
   if !b:autopairs_enabled
     return a:key
   end
@@ -219,7 +219,7 @@ function! AutoPairsInsert(key)
   return open.close.s:Left
 endfunction
 
-function! AutoPairsDelete()
+function! autopairs#AutoPairsDelete()
   if !b:autopairs_enabled
     return "\<BS>"
   end
@@ -285,7 +285,7 @@ function! AutoPairsDelete()
   return "\<BS>"
 endfunction
 
-function! AutoPairsJump()
+function! autopairs#AutoPairsJump()
   call search('["\]'')}]','W')
 endfunction
 " string_chunk cannot use standalone
@@ -315,7 +315,7 @@ func! s:FormatChunk(open, close)
 endf
 
 " Fast wrap the word in brackets
-function! AutoPairsFastWrap()
+function! autopairs#AutoPairsFastWrap()
   let line = getline('.')
   let current_char = line[col('.')-1]
   let next_char = line[col('.')]
@@ -347,7 +347,7 @@ function! AutoPairsFastWrap()
   end
 endfunction
 
-function! AutoPairsMap(key)
+function! autopairs#AutoPairsMap(key)
   " | is special key which separate map command from text
   let key = a:key
   if key == '|'
@@ -355,10 +355,10 @@ function! AutoPairsMap(key)
   end
   let escaped_key = substitute(key, "'", "''", 'g')
   " use expr will cause search() doesn't work
-  execute 'inoremap <buffer> <silent> '.key." <C-R>=AutoPairsInsert('".escaped_key."')<CR>"
+  execute 'inoremap <buffer> <silent> '.key." <C-R>=autopairs#AutoPairsInsert('".escaped_key."')<CR>"
 endfunction
 
-function! AutoPairsToggle()
+function! autopairs#AutoPairsToggle()
   if b:autopairs_enabled
     let b:autopairs_enabled = 0
     echo 'AutoPairs Disabled.'
@@ -369,7 +369,7 @@ function! AutoPairsToggle()
   return ''
 endfunction
 
-function! AutoPairsReturn()
+function! autopairs#AutoPairsReturn()
   if b:autopairs_enabled == 0
     return ''
   end
@@ -402,7 +402,7 @@ function! AutoPairsReturn()
   return ''
 endfunction
 
-function! AutoPairsSpace()
+function! autopairs#AutoPairsSpace()
   let line = getline('.')
   let prev_char = line[col('.')-2]
   let cmd = ''
@@ -413,7 +413,7 @@ function! AutoPairsSpace()
   return "\<SPACE>".cmd
 endfunction
 
-function! AutoPairsBackInsert()
+function! autopairs#AutoPairsBackInsert()
   if exists('b:autopairs_saved_pair')
     let pair = b:autopairs_saved_pair[0]
     let pos  = b:autopairs_saved_pair[1]
@@ -423,7 +423,7 @@ function! AutoPairsBackInsert()
   return ''
 endfunction
 
-function! AutoPairsInit()
+function! autopairs#AutoPairsInit()
   let b:autopairs_loaded  = 1
   let b:autopairs_enabled = 1
   let b:AutoPairsClosedPairs = {}
@@ -434,9 +434,9 @@ function! AutoPairsInit()
 
   " buffer level map pairs keys
   for [open, close] in items(b:AutoPairs)
-    call AutoPairsMap(open)
+    call autopairs#AutoPairsMap(open)
     if open != close
-      call AutoPairsMap(close)
+      call autopairs#AutoPairsMap(close)
     end
     let b:AutoPairsClosedPairs[close] = open
   endfor
@@ -444,11 +444,11 @@ function! AutoPairsInit()
   " Still use <buffer> level mapping for <BS> <SPACE>
   if g:AutoPairsMapBS
     " Use <C-R> instead of <expr> for issue #14 sometimes press BS output strange words
-    execute 'inoremap <buffer> <silent> <BS> <C-R>=AutoPairsDelete()<CR>'
+    execute 'inoremap <buffer> <silent> <BS> <C-R>=autopairs#AutoPairsDelete()<CR>'
   end
 
   if g:AutoPairsMapCh
-    execute 'inoremap <buffer> <silent> <C-h> <C-R>=AutoPairsDelete()<CR>'
+    execute 'inoremap <buffer> <silent> <C-h> <C-R>=autopairs#AutoPairsDelete()<CR>'
   endif
 
   if g:AutoPairsMapSpace
@@ -457,26 +457,26 @@ function! AutoPairsInit()
     if v:version == 703 && has("patch489") || v:version > 703
       let do_abbrev = "<C-]>"
     endif
-    execute 'inoremap <buffer> <silent> <SPACE> '.do_abbrev.'<C-R>=AutoPairsSpace()<CR>'
+    execute 'inoremap <buffer> <silent> <SPACE> '.do_abbrev.'<C-R>=autopairs#AutoPairsSpace()<CR>'
   end
 
   if g:AutoPairsShortcutFastWrap != ''
-    execute 'inoremap <buffer> <silent> '.g:AutoPairsShortcutFastWrap.' <C-R>=AutoPairsFastWrap()<CR>'
+    execute 'inoremap <buffer> <silent> '.g:AutoPairsShortcutFastWrap.' <C-R>=autopairs#AutoPairsFastWrap()<CR>'
   end
 
   if g:AutoPairsShortcutBackInsert != ''
-    execute 'inoremap <buffer> <silent> '.g:AutoPairsShortcutBackInsert.' <C-R>=AutoPairsBackInsert()<CR>'
+    execute 'inoremap <buffer> <silent> '.g:AutoPairsShortcutBackInsert.' <C-R>=autopairs#AutoPairsBackInsert()<CR>'
   end
 
   if g:AutoPairsShortcutToggle != ''
     " use <expr> to ensure showing the status when toggle
-    execute 'inoremap <buffer> <silent> <expr> '.g:AutoPairsShortcutToggle.' AutoPairsToggle()'
-    execute 'noremap <buffer> <silent> '.g:AutoPairsShortcutToggle.' :call AutoPairsToggle()<CR>'
+    execute 'inoremap <buffer> <silent> <expr> '.g:AutoPairsShortcutToggle.' autopairs#AutoPairsToggle()'
+    execute 'noremap <buffer> <silent> '.g:AutoPairsShortcutToggle.' :call autopairs#AutoPairsToggle()<CR>'
   end
 
   if g:AutoPairsShortcutJump != ''
-    execute 'inoremap <buffer> <silent> ' . g:AutoPairsShortcutJump. ' <ESC>:call AutoPairsJump()<CR>a'
-    execute 'noremap <buffer> <silent> ' . g:AutoPairsShortcutJump. ' :call AutoPairsJump()<CR>'
+    execute 'inoremap <buffer> <silent> ' . g:AutoPairsShortcutJump. ' <ESC>:call autopairs#AutoPairsJump()<CR>a'
+    execute 'noremap <buffer> <silent> ' . g:AutoPairsShortcutJump. ' :call autopairs#AutoPairsJump()<CR>'
   end
 
 endfunction
@@ -487,7 +487,7 @@ function! s:ExpandMap(map)
   return map
 endfunction
 
-function! AutoPairsTryInit()
+function! autopairs#AutoPairsTryInit()
   if exists('b:autopairs_loaded')
     return
   end
@@ -549,12 +549,11 @@ function! AutoPairsTryInit()
       execute 'inoremap <script> <buffer> <silent> <CR> '.old_cr.'<SID>AutoPairsReturn'
     end
   endif
-  call AutoPairsInit()
+  call autopairs#AutoPairsInit()
 endfunction
 
 " Always silent the command
-inoremap <silent> <SID>AutoPairsReturn <C-R>=AutoPairsReturn()<CR>
+inoremap <silent> <SID>AutoPairsReturn <C-R>=autopairs#AutoPairsReturn()<CR>
 imap <script> <Plug>AutoPairsReturn <SID>AutoPairsReturn
 
-
-au BufEnter * :call AutoPairsTryInit()
+" au BufEnter * :call autopairs#AutoPairsTryInit()
